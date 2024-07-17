@@ -15,28 +15,66 @@ describe("Rover class", function() {
     expect(rover.mode).toBe('NORMAL');
     expect(rover.generatorWatts).toBe(110);
   });
-
+  // test #8
   test("response returned by receiveMessage contains the name of the message", function () {
     let commands = [new Command('MODE_CHANGE', 'LOW_POWER'), new Command('STATUS_CHECK')];
     let message = new Message('Test message with two commands', commands);
     let rover = new Rover(98382);
     let response = rover.receiveMessage(message);
-  expect(rover.receiveMessage(message).message).toBe('Test message with two commands');
+  expect(response.message).toBe('Test message with two commands');
   });
-
+  // test #9
   test("response returned by receiveMessage includes two results if two commands are sent in the message", function () {
     let commands = [new Command('MODE_CHANGE', 'LOW_POWER'), new Command('STATUS_CHECK')];
     let message = new Message('Test message with two commands', commands);
     let rover = new Rover(98382);
     let response = rover.receiveMessage(message);
-  expect(rover.receiveMessage(message).results).toStrictEqual([new Command('MODE_CHANGE', 'LOW_POWER'), new Command('STATUS_CHECK')]);
+    // These 2 lines are unnecessary if the results are irrelevant
+  // expect(response.results[0]).toContain({completed: true});
+  // expect(response.results[1]).toBe({completed: true});
+  expect(response.results).toHaveLength(2);
   });
-
+  //test #10
   test("responds correctly to the status check command", function () {
-    let commands = new Command('STATUS_CHECK');
-    let message = new Message('Status Check', commands);
+    let commands = [new Command('MODE_CHANGE', 'LOW_POWER'), new Command('STATUS_CHECK')];
+    let message = new Message('Test message with two commands', commands);
     let rover = new Rover(98382);
     let response = rover.receiveMessage(message);
-  expect(response.results.roverStatus).toBe({completed: true, roverStatus: {mode: 'NORMAL', generatorWatts: 110, position: 87382098}})
+  expect(response.results).toStrictEqual([{completed: true}, {completed: true, roverStatus: {mode: 'LOW_POWER', generatorWatts: 110, position: 98382}}])
   });
+  //test #11
+  test("responds correctly to the mode change command", function () {
+    let commands = [new Command('MODE_CHANGE', 'LOW_POWER'), new Command('STATUS_CHECK')];
+    let message = new Message('Test message with two commands', commands);
+    let rover = new Rover(98382);
+    let response = rover.receiveMessage(message);
+  expect(response.results).toStrictEqual([{completed: true}, {completed: true, roverStatus: {mode: 'LOW_POWER', generatorWatts: 110, position: 98382}}])
+  });
+  //test #12
+  test("responds with a false completed value when attempting to move in LOW_POWER mode", function () {
+    let commands = [new Command('MODE_CHANGE', 'LOW_POWER'), new Command('MOVE', 50)];
+    let message = new Message('Change mode to Low Power then attempt to move 50.', commands);
+    let rover = new Rover(98382);
+    let response = rover.receiveMessage(message);
+  expect(response.results).toStrictEqual([{completed: true}, {completed: false}])
+  });
+  //test #13
+  test("responds with the position for the move command", function () {
+    let commands = [new Command('MODE_CHANGE', 'NORMAL'), new Command('MOVE', 87654)];
+    let message = new Message('Change mode to Normal then attempt to move 50.', commands);
+    let rover = new Rover(98382);
+    let response = rover.receiveMessage(message);
+  expect(response.results).toStrictEqual([{completed: true}, {completed: true}])
+  expect(rover.position).toBe(87654)
+  });
+  //my own test (need to make it so the rover will accept 1 singular command)
+  test("", function () {
+    let commands = [new Command('MODE_CHANGE', 'NORMAL'), new Command('MOVE', 87654)];
+    let message = new Message('Change mode to Normal then attempt to move 50.', commands);
+    let rover = new Rover(98382);
+    let response = rover.receiveMessage(message);
+  expect(response.results).toStrictEqual([{completed: true}, {completed: true}])
+  expect(rover.position).toBe(87654)
+  });
+
 });
