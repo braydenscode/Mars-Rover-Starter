@@ -7,9 +7,7 @@ class Rover {
    }
    receiveMessage(message) {
       let commandOutput = [];
-      console.log(message.commands);
       for (const element of message.commands) {
-         // console.log(element);
        if (element.commandType === 'STATUS_CHECK') {
          let roverStatusInput = {
             mode: this.mode,
